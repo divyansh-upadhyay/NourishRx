@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'PATIENT',
@@ -12,8 +12,8 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "PatientProfile" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "dob" TIMESTAMP(3) NOT NULL,
@@ -26,8 +26,8 @@ CREATE TABLE "PatientProfile" (
 
 -- CreateTable
 CREATE TABLE "Condition" (
-    "id" TEXT NOT NULL,
-    "patientId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "patientId" UUID NOT NULL,
     "conditionType" TEXT NOT NULL,
     "severity" TEXT NOT NULL,
     "diagnosedAt" TIMESTAMP(3) NOT NULL,
@@ -37,8 +37,8 @@ CREATE TABLE "Condition" (
 
 -- CreateTable
 CREATE TABLE "Medication" (
-    "id" TEXT NOT NULL,
-    "patientId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "patientId" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "dosage" TEXT NOT NULL,
     "frequency" TEXT NOT NULL,
@@ -48,8 +48,8 @@ CREATE TABLE "Medication" (
 
 -- CreateTable
 CREATE TABLE "LabValue" (
-    "id" TEXT NOT NULL,
-    "patientId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "patientId" UUID NOT NULL,
     "type" TEXT NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
     "unit" TEXT NOT NULL,
@@ -60,8 +60,8 @@ CREATE TABLE "LabValue" (
 
 -- CreateTable
 CREATE TABLE "DietaryPreference" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL,
     "cuisinePrefs" TEXT NOT NULL DEFAULT '',
     "allergies" TEXT NOT NULL DEFAULT '',
     "dislikes" TEXT NOT NULL DEFAULT '',
@@ -72,8 +72,8 @@ CREATE TABLE "DietaryPreference" (
 
 -- CreateTable
 CREATE TABLE "MealPlan" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL,
     "weekStart" TIMESTAMP(3) NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'active',
     "generatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -83,11 +83,11 @@ CREATE TABLE "MealPlan" (
 
 -- CreateTable
 CREATE TABLE "MealPlanItem" (
-    "id" TEXT NOT NULL,
-    "planId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "planId" UUID NOT NULL,
     "day" TEXT NOT NULL,
     "mealType" TEXT NOT NULL,
-    "recipeId" TEXT NOT NULL,
+    "recipeId" UUID NOT NULL,
     "servings" INTEGER NOT NULL DEFAULT 1,
 
     CONSTRAINT "MealPlanItem_pkey" PRIMARY KEY ("id")
@@ -95,7 +95,7 @@ CREATE TABLE "MealPlanItem" (
 
 -- CreateTable
 CREATE TABLE "Recipe" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "cuisine" TEXT NOT NULL,
     "prepTimeMin" INTEGER NOT NULL,
@@ -108,8 +108,8 @@ CREATE TABLE "Recipe" (
 
 -- CreateTable
 CREATE TABLE "RecipeNutrient" (
-    "id" TEXT NOT NULL,
-    "recipeId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "recipeId" UUID NOT NULL,
     "nutrientType" TEXT NOT NULL,
     "amountPerServing" DOUBLE PRECISION NOT NULL,
     "unit" TEXT NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE "RecipeNutrient" (
 
 -- CreateTable
 CREATE TABLE "FoodItem" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "usdaId" TEXT,
     "category" TEXT NOT NULL,
@@ -129,9 +129,9 @@ CREATE TABLE "FoodItem" (
 
 -- CreateTable
 CREATE TABLE "RecipeIngredient" (
-    "id" TEXT NOT NULL,
-    "recipeId" TEXT NOT NULL,
-    "foodItemId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "recipeId" UUID NOT NULL,
+    "foodItemId" UUID NOT NULL,
     "quantity" DOUBLE PRECISION NOT NULL,
     "unit" TEXT NOT NULL,
 
@@ -140,9 +140,9 @@ CREATE TABLE "RecipeIngredient" (
 
 -- CreateTable
 CREATE TABLE "GroceryCart" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "planId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL,
+    "planId" UUID NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'created',
     "provider" TEXT NOT NULL,
 
@@ -151,9 +151,9 @@ CREATE TABLE "GroceryCart" (
 
 -- CreateTable
 CREATE TABLE "GroceryItem" (
-    "id" TEXT NOT NULL,
-    "cartId" TEXT NOT NULL,
-    "foodItemId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "cartId" UUID NOT NULL,
+    "foodItemId" UUID NOT NULL,
     "quantity" DOUBLE PRECISION NOT NULL,
     "unit" TEXT NOT NULL,
 
@@ -162,9 +162,9 @@ CREATE TABLE "GroceryItem" (
 
 -- CreateTable
 CREATE TABLE "DietitianMessage" (
-    "id" TEXT NOT NULL,
-    "senderId" TEXT NOT NULL,
-    "recipientId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "senderId" UUID NOT NULL,
+    "recipientId" UUID NOT NULL,
     "content" TEXT NOT NULL,
     "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "readAt" TIMESTAMP(3),
@@ -174,8 +174,8 @@ CREATE TABLE "DietitianMessage" (
 
 -- CreateTable
 CREATE TABLE "Subscription" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL,
     "planType" TEXT NOT NULL,
     "stripeId" TEXT,
     "status" TEXT NOT NULL DEFAULT 'active',
@@ -249,3 +249,4 @@ ALTER TABLE "DietitianMessage" ADD CONSTRAINT "DietitianMessage_recipientId_fkey
 
 -- AddForeignKey
 ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

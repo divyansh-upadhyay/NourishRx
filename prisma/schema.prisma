@@ -7,11 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums (since SQLite doesn't support them natively, these are simulated)
-// However, Prisma simulates Enums gracefully in SQLite as Strings in DB/Types in TS.
-
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email     String   @unique
   password  String
   role      String   @default("PATIENT") // PATIENT, DIETITIAN, ADMIN
@@ -28,8 +25,8 @@ model User {
 }
 
 model PatientProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName String
   lastName  String
@@ -44,8 +41,8 @@ model PatientProfile {
 }
 
 model Condition {
-  id            String         @id @default(uuid())
-  patientId     String
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patientId     String         @db.Uuid
   patient       PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
   conditionType String         // e.g., type2_diabetes, hypertension, ckd
   severity      String         // mild, moderate, severe
@@ -53,8 +50,8 @@ model Condition {
 }
 
 model Medication {
-  id        String         @id @default(uuid())
-  patientId String
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patientId String         @db.Uuid
   patient   PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
   name      String
   dosage    String
@@ -62,8 +59,8 @@ model Medication {
 }
 
 model LabValue {
-  id         String         @id @default(uuid())
-  patientId  String
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patientId  String         @db.Uuid
   patient    PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
   type       String         // e.g., A1C, Potassium
   value      Float
@@ -72,10 +69,9 @@ model LabValue {
 }
 
 model DietaryPreference {
-  id                   String @id @default(uuid())
-  userId               String @unique
+  id                   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String @unique @db.Uuid
   user                 User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Storing simple comma-separated strings for SQLite
   cuisinePrefs         String @default("")
   allergies            String @default("")
   dislikes             String @default("")
@@ -83,8 +79,8 @@ model DietaryPreference {
 }
 
 model MealPlan {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @db.Uuid
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   weekStart   DateTime
   status      String   @default("active") // active, completed, discarded
@@ -95,18 +91,18 @@ model MealPlan {
 }
 
 model MealPlanItem {
-  id       String   @id @default(uuid())
-  planId   String
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planId   String   @db.Uuid
   plan     MealPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
   day      String   // monday, tuesday, etc.
   mealType String   // breakfast, lunch, dinner, snack
-  recipeId String
+  recipeId String   @db.Uuid
   recipe   Recipe   @relation(fields: [recipeId], references: [id])
   servings Int      @default(1)
 }
 
 model Recipe {
-  id           String @id @default(uuid())
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name         String
   cuisine      String
   prepTimeMin  Int
@@ -120,8 +116,8 @@ model Recipe {
 }
 
 model RecipeNutrient {
-  id              String @id @default(uuid())
-  recipeId        String
+  id              String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId        String @db.Uuid
   recipe          Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   nutrientType    String // calories, protein, carbs, fat, sodium
   amountPerServing Float
@@ -129,7 +125,7 @@ model RecipeNutrient {
 }
 
 model FoodItem {
-  id       String @id @default(uuid())
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name     String
   usdaId   String?
   category String
@@ -139,20 +135,20 @@ model FoodItem {
 }
 
 model RecipeIngredient {
-  id         String   @id @default(uuid())
-  recipeId   String
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId   String   @db.Uuid
   recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  foodItemId String
+  foodItemId String   @db.Uuid
   foodItem   FoodItem @relation(fields: [foodItemId], references: [id])
   quantity   Float
   unit       String
 }
 
 model GroceryCart {
-  id       String   @id @default(uuid())
-  userId   String
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId   String   @db.Uuid
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId   String
+  planId   String   @db.Uuid
   plan     MealPlan @relation(fields: [planId], references: [id])
   status   String   @default("created") // created, ordered, delivered
   provider String   // instacart, walmart
@@ -161,20 +157,20 @@ model GroceryCart {
 }
 
 model GroceryItem {
-  id         String      @id @default(uuid())
-  cartId     String
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cartId     String      @db.Uuid
   cart       GroceryCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  foodItemId String
+  foodItemId String      @db.Uuid
   foodItem   FoodItem    @relation(fields: [foodItemId], references: [id])
   quantity   Float
   unit       String
 }
 
 model DietitianMessage {
-  id          String    @id @default(uuid())
-  senderId    String
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderId    String    @db.Uuid
   sender      User      @relation("Sender", fields: [senderId], references: [id])
-  recipientId String
+  recipientId String    @db.Uuid
   recipient   User      @relation("Recipient", fields: [recipientId], references: [id])
   content     String
   sentAt      DateTime  @default(now())
@@ -182,8 +178,8 @@ model DietitianMessage {
 }
 
 model Subscription {
-  id        String    @id @default(uuid())
-  userId    String
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @db.Uuid
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   planType  String    // basic, standard, complete
   stripeId  String?   @unique
