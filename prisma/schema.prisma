@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Enums (since SQLite doesn't support them natively, these are simulated)
+// However, Prisma simulates Enums gracefully in SQLite as Strings in DB/Types in TS.
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   @default("PATIENT") // PATIENT, DIETITIAN, ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patientProfile   PatientProfile?
+  dietaryPrefs     DietaryPreference?
+  mealPlans        MealPlan[]
+  groceryCarts     GroceryCart[]
+  sentMessages     DietitianMessage[] @relation("Sender")
+  receivedMessages DietitianMessage[] @relation("Recipient")
+  subscriptions    Subscription[]
+}
+
+model PatientProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  dob       DateTime
+  gender    String
+  heightCm  Float
+  weightKg  Float
+
+  conditions  Condition[]
+  medications Medication[]
+  labValues   LabValue[]
+}
+
+model Condition {
+  id            String         @id @default(uuid())
+  patientId     String
+  patient       PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  conditionType String         // e.g., type2_diabetes, hypertension, ckd
+  severity      String         // mild, moderate, severe
+  diagnosedAt   DateTime
+}
+
+model Medication {
+  id        String         @id @default(uuid())
+  patientId String
+  patient   PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name      String
+  dosage    String
+  frequency String
+}
+
+model LabValue {
+  id         String         @id @default(uuid())
+  patientId  String
+  patient    PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type       String         // e.g., A1C, Potassium
+  value      Float
+  unit       String
+  recordedAt DateTime
+}
+
+model DietaryPreference {
+  id                   String @id @default(uuid())
+  userId               String @unique
+  user                 User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Storing simple comma-separated strings for SQLite
+  cuisinePrefs         String @default("")
+  allergies            String @default("")
+  dislikes             String @default("")
+  religiousRestrictions String @default("")
+}
+
+model MealPlan {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart   DateTime
+  status      String   @default("active") // active, completed, discarded
+  generatedAt DateTime @default(now())
+
+  items        MealPlanItem[]
+  groceryCarts GroceryCart[]
+}
+
+model MealPlanItem {
+  id       String   @id @default(uuid())
+  planId   String
+  plan     MealPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  day      String   // monday, tuesday, etc.
+  mealType String   // breakfast, lunch, dinner, snack
+  recipeId String
+  recipe   Recipe   @relation(fields: [recipeId], references: [id])
+  servings Int      @default(1)
+}
+
+model Recipe {
+  id           String @id @default(uuid())
+  name         String
+  cuisine      String
+  prepTimeMin  Int
+  servings     Int
+  instructions String // Will store Markdown or JSON array of steps
+  imageUrl     String?
+
+  nutrients   RecipeNutrient[]
+  ingredients RecipeIngredient[]
+  mealItems   MealPlanItem[]
+}
+
+model RecipeNutrient {
+  id              String @id @default(uuid())
+  recipeId        String
+  recipe          Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  nutrientType    String // calories, protein, carbs, fat, sodium
+  amountPerServing Float
+  unit            String
+}
+
+model FoodItem {
+  id       String @id @default(uuid())
+  name     String
+  usdaId   String?
+  category String
+
+  recipeIngredients RecipeIngredient[]
+  groceryItems      GroceryItem[]
+}
+
+model RecipeIngredient {
+  id         String   @id @default(uuid())
+  recipeId   String
+  recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  foodItemId String
+  foodItem   FoodItem @relation(fields: [foodItemId], references: [id])
+  quantity   Float
+  unit       String
+}
+
+model GroceryCart {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId   String
+  plan     MealPlan @relation(fields: [planId], references: [id])
+  status   String   @default("created") // created, ordered, delivered
+  provider String   // instacart, walmart
+
+  items GroceryItem[]
+}
+
+model GroceryItem {
+  id         String      @id @default(uuid())
+  cartId     String
+  cart       GroceryCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  foodItemId String
+  foodItem   FoodItem    @relation(fields: [foodItemId], references: [id])
+  quantity   Float
+  unit       String
+}
+
+model DietitianMessage {
+  id          String    @id @default(uuid())
+  senderId    String
+  sender      User      @relation("Sender", fields: [senderId], references: [id])
+  recipientId String
+  recipient   User      @relation("Recipient", fields: [recipientId], references: [id])
+  content     String
+  sentAt      DateTime  @default(now())
+  readAt      DateTime?
+}
+
+model Subscription {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planType  String    // basic, standard, complete
+  stripeId  String?   @unique
+  status    String    @default("active")
+  renewsAt  DateTime?
+}
